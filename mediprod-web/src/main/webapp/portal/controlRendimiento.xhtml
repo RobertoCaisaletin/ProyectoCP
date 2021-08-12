@@ -1,0 +1,342 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/WEB-INF/template/template.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+	<ui:define name="content">
+		<h:form id="formMessages">
+			<p:growl id="messages" showDetail="true" />
+		</h:form>
+		<h:form id="formProceso">
+			<p:menubar>
+				<p:menuitem value="Refrescar" icon="pi pi-refresh" />
+				<p:menuitem value="Nuevo" icon="pi pi-fw pi-plus"
+					rendered="#{procesoViewBean.usuarioAdministrador}"
+					update=":formDglProceso:pnlProceso" process="@this"
+					actionListener="#{procesoViewBean.inicializar}"
+					onclick="PF('dlgProceso').show()" />
+				<f:facet name="options">
+					<div class="ui-input-icon-left p-mr-2">
+						<p:menuButton value="Exportar">
+							<p:menuitem value="Excel" ajax="false" icon="fa fa-file-excel-o">
+							</p:menuitem>
+							<p:menuitem value="PDF" ajax="false" icon="fa fa-file-pdf-o">
+							</p:menuitem>
+						</p:menuButton>
+					</div>
+				</f:facet>
+			</p:menubar>
+			<p:dataTable value="#{procesoViewBean.listProceso}" var="proceso"
+				rowIndexVar="row" id="dtProceso"
+				emptyMessage="No se encontraron registros">
+				<f:facet name="header">Lista de Proceso</f:facet>
+				<p:column width="10" headerText="#" style="text-align:right;">
+					<h:outputLabel value="#{row + 1}" />
+				</p:column>
+				<p:column headerText="Acciones"
+					rendered="#{procesoViewBean.usuarioAdministrador}">
+					<p:commandButton icon="fa fa-pencil-square" value="Editar"
+						actionListener="#{procesoViewBean.editarProceso(proceso)}"
+						title="Editar" process="@this" onclick="PF('dlgProceso').show()"
+						update=":formDglProceso:pnlProceso">
+					</p:commandButton>
+					<p:commandButton icon="fa fa-trash" value="Eliminar"
+						title="Eliminar" process="@this"
+						disabled="#{proceso.estado ne 'INGRESADO'}"
+						onclick="PF('dlgEliminarProceso').show()"
+						update=":formDglProceso:pnlProceso">
+						<f:setPropertyActionListener
+							target="#{procesoViewBean.procesoSelected}" value="#{proceso}" />
+					</p:commandButton>
+
+				</p:column>
+
+				<p:column headerText="Aprobar" width="50"
+					rendered="#{procesoViewBean.usuarioAdministrador}">
+					<p:commandButton icon="pi pi-caret-right" title="Aprobar"
+						process="@this" disabled="#{proceso.estado ne 'INGRESADO'}"
+						onclick="PF('dlgProcesoIniciar').show()"
+						update=":formDglProceso:pnlProceso">
+						<f:setPropertyActionListener
+							target="#{procesoViewBean.procesoSelected}" value="#{proceso}" />
+					</p:commandButton>
+
+				</p:column>
+
+				<p:column headerText="Finalizar" width="50"
+					rendered="#{procesoViewBean.usuarioAdministrador}">
+					<p:commandButton icon="pi pi-times-circle"
+						disabled="#{proceso.estado ne 'APROBADO'}" title="Finalizar"
+						process="@this" onclick="PF('dlgProcesoFinalizar').show()"
+						update=":formDglProceso:pnlProceso">
+						<f:setPropertyActionListener
+							target="#{procesoViewBean.procesoSelected}" value="#{proceso}" />
+					</p:commandButton>
+				</p:column>
+				<p:column headerText="Revisar" width="50"
+					rendered="#{procesoViewBean.usuarioAdministrador}">
+					<p:commandButton icon="pi pi-check-square"
+						disabled="#{proceso.estado ne 'FINALIZADO'}" title="Finalizar"
+						process="@this" onclick="PF('dlgProcesoRevision').show()"
+						update=":formDglProceso:pnlProceso">
+						<f:setPropertyActionListener
+							target="#{procesoViewBean.procesoSelected}" value="#{proceso}" />
+					</p:commandButton>
+				</p:column>
+				<p:column headerText="Control" width="50">
+					<p:commandButton icon="fa fa-calculator"
+						disabled="#{proceso.estado eq 'INGRESADO'}"
+						actionListener="#{procesoViewBean.mostrarRendimiento(proceso)}"
+						title="Eficiencia de la línea de Producción" process="@this"
+						oncomplete="PF('dlgRendimiento').show()"
+						update=":formDglProceso:pnlRendimiento">
+					</p:commandButton>
+				</p:column>
+				<p:column headerText="Producto">
+					<p:outputLabel value="#{proceso.producto.descripcion}"></p:outputLabel>
+				</p:column>
+				<p:column headerText="Estimación" width="70">
+					<p:outputLabel value="#{proceso.producto.numEstandar}"></p:outputLabel>
+				</p:column>
+				<p:column headerText="Estado" width="70">
+					<p:outputLabel value="#{proceso.estado}"></p:outputLabel>
+				</p:column>
+				<p:column headerText="Fecha Registro" width="150">
+					<h:outputLabel value="#{proceso.fechaRegistro}">
+						<f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss" />
+					</h:outputLabel>
+				</p:column>
+
+			</p:dataTable>
+		</h:form>
+		<h:form id="formDglProceso">
+			<p:confirmDialog id="dlgProcesoIniciar" width="400"
+				widgetVar="dlgProcesoIniciar"
+				message=" ¿ Desea aprobar el Proceso seleccionado ?"
+				header="Proceso" appendTo="@(body)">
+				<p:commandButton value="Confirmar"
+					actionListener="#{procesoViewBean.aprobarProduccion}"
+					oncomplete="PF('dlgProcesoIniciar').hide()"
+					update=":formProceso:dtProceso, :formMessages:messages"
+					process="@this" styleClass="ui-confirmdialog-yes"
+					icon="ui-icon-check" />
+				<p:commandButton value="Cancelar" type="button"
+					onclick="PF('dlgProcesoIniciar').hide()"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+			<p:confirmDialog id="dlgEliminarProceso" width="400"
+				widgetVar="dlgEliminarProceso"
+				message=" ¿ Desea eliminar el Proceso seleccionado ?"
+				header="Proceso" appendTo="@(body)">
+				<p:commandButton value="Confirmar"
+					actionListener="#{procesoViewBean.eliminar}"
+					oncomplete="PF('dlgEliminarProceso').hide()"
+					update=":formProceso:dtProceso, :formMessages:messages"
+					process="@this" styleClass="ui-confirmdialog-yes"
+					icon="ui-icon-check" />
+				<p:commandButton value="Cancelar" type="button"
+					onclick="PF('dlgEliminarProceso').hide()"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+
+			<p:confirmDialog id="dlgProcesoFinalizar" width="400"
+				widgetVar="dlgProcesoFinalizar"
+				message=" ¿ Desea finalizar el Proceso seleccionado ?"
+				header="Proceso" appendTo="@(body)">
+				<p:commandButton value="Confirmar"
+					actionListener="#{procesoViewBean.finalizarProceso}"
+					oncomplete="PF('dlgProcesoFinalizar').hide()"
+					update=":formProceso:dtProceso, :formMessages:messages"
+					process="@this" styleClass="ui-confirmdialog-yes"
+					icon="ui-icon-check" />
+				<p:commandButton value="Cancelar" type="button"
+					onclick="PF('dlgProcesoFinalizar').hide()"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+
+
+			<p:confirmDialog id="dlgFinalizarProduccion" width="400"
+				widgetVar="dlgFinalizarProduccion"
+				message=" ¿ Desea finalizar la Producción ?"
+				header="Finalizar Producción" appendTo="@(body)">
+				<p:commandButton value="Finalizar Producción" icon="fa fa-save"
+					oncomplete="PF('dlgFinalizarProduccion').hide() ; PF('dlgRendimiento').hide()"
+					actionListener="#{procesoViewBean.finalizarProceso}"
+					update=":formProceso:dtProceso,:formMessages:messages"
+					process="@this" />
+				<p:commandButton value="Cancelar" type="button"
+					onclick="PF('dlgFinalizarProduccion').hide()"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+
+			<p:confirmDialog id="dlgProcesoRevision" width="400"
+				widgetVar="dlgProcesoRevision"
+				message=" ¿ Desea revisar el Proceso seleccionado ?"
+				header="Proceso" appendTo="@(body)">
+				<p:commandButton value="Confirmar"
+					actionListener="#{procesoViewBean.revisarProceso}"
+					oncomplete="PF('dlgProcesoRevision').hide()"
+					update=":formProceso:dtProceso, :formMessages:messages"
+					process="@this" styleClass="ui-confirmdialog-yes"
+					icon="ui-icon-check" />
+				<p:commandButton value="Cancelar" type="button"
+					onclick="PF('dlgProcesoRevision').hide()"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+
+			<p:dialog header="Proceso" widgetVar="dlgProceso" minHeight="40"
+				id="dlgProceso" width="400" showEffect="fade">
+				<p:panel id="pnlProceso">
+					<h:panelGrid columns="3" id="pgProceso">
+						<p:outputLabel for="producto" value="Producto:"></p:outputLabel>
+						<p:selectOneMenu id="producto" required="true"
+							requiredMessage="Campo Obligatorio"
+							disabled="#{procesoViewBean.procesoSelected.estado ne 'INGRESADO'}"
+							value="#{procesoViewBean.idProductoSelected}">
+							<f:selectItem itemLabel="Seleccione"></f:selectItem>
+							<f:selectItems value="#{procesoViewBean.listProducto}" var="dto"
+								itemLabel="#{dto.descripcion}" itemValue="#{dto.idProducto}"></f:selectItems>
+						</p:selectOneMenu>
+						<p:message for="producto" display="icon" />
+
+						<p:outputLabel for="observacion" value="Observación:"></p:outputLabel>
+						<p:inputTextarea id="observacion" required="true" rows="2"
+							disabled="#{procesoViewBean.procesoSelected.estado ne 'INGRESADO'}"
+							cols="20" requiredMessage="Campo Obligatorio"
+							value="#{procesoViewBean.procesoSelected.observacion}"></p:inputTextarea>
+						<p:message for="observacion" display="icon" />
+						<f:facet name="footer">
+							<p:commandButton
+								disabled="#{procesoViewBean.procesoSelected.estado ne 'INGRESADO'}"
+								value="#{procesoViewBean.accion eq 'C' ? 'Guardar' : 'Modificar'} "
+								icon="fa fa-save"
+								oncomplete="if (args &amp;&amp; !args.validationFailed) PF('dlgProceso').hide()"
+								actionListener="#{procesoViewBean.guardarOrModificar}"
+								update="pgProceso, :formProceso:dtProceso, :formMessages:messages"
+								process="@this, pgProceso" />
+							<p:commandButton icon="ui-icon-close"
+								oncomplete="PF('dlgProceso').hide()" immediate="true"
+								value="Cancelar"></p:commandButton>
+						</f:facet>
+					</h:panelGrid>
+				</p:panel>
+			</p:dialog>
+
+			<p:dialog header="Eficiencia de la línea de Producción"
+				widgetVar="dlgRendimiento" minHeight="40" id="dlgRendimiento"
+				width="650" showEffect="fade">
+				<p:panel id="pnlRendimiento">
+					<p:panelGrid id="pgInformativo" columns="8">
+						<f:facet name="header">Proceso</f:facet>
+						<p:outputLabel value="Producto:"></p:outputLabel>
+						<p:outputLabel
+							value="#{procesoViewBean.procesoSelected.producto.descripcion}"></p:outputLabel>
+						<p:outputLabel value="Hora Inicio:"></p:outputLabel>
+						<p:outputLabel
+							value="#{procesoViewBean.procesoSelected.fechaInicio}">
+							<f:convertDateTime pattern="HH:mm:ss" />
+						</p:outputLabel>
+						<p:outputLabel value="Hora Final:"></p:outputLabel>
+						<p:outputLabel
+							value="#{procesoViewBean.procesoSelected.fechaFinal}">
+							<f:convertDateTime pattern="HH:mm:ss" />
+						</p:outputLabel>
+						<p:outputLabel value="Estado:"></p:outputLabel>
+						<p:outputLabel value="#{procesoViewBean.procesoSelected.estado}"></p:outputLabel>
+					</p:panelGrid>
+					<p:toolbar id="opcionesProduccion">
+						<p:toolbarGroup>
+							<p:commandButton title="Agregar" icon="pi pi-fw pi-plus"
+								value="Agregar"
+								rendered="#{procesoViewBean.procesoSelected.estado eq 'APROBADO' || procesoViewBean.procesoSelected.estado eq 'PRODUCCION'}"
+								actionListener="#{procesoViewBean.agregarRendimiento}"
+								process="@this" onclick="PF('dlgEficiencia').show()"
+								update=":formDglProceso:pnlEficiencia" />
+							<p:commandButton title="Finalizar Producción"
+								rendered="#{procesoViewBean.procesoSelected.estado eq 'APROBADO' || procesoViewBean.procesoSelected.estado eq 'PRODUCCION' || procesoViewBean.procesoSelected.estado eq 'REVISION'}"
+								icon="pi pi-fw pi-plus" process="@this"
+								onclick="PF('dlgFinalizarProduccion').show()"
+								update=":formDglProceso:pnlEficiencia" />
+
+						</p:toolbarGroup>
+					</p:toolbar>
+					<p:dataTable value="#{procesoViewBean.listRendimiento}"
+						var="rendimiento" id="dtRendimiento" editable="true"
+						emptyMessage="No se encontraron registros">
+						<f:facet name="header">Lista de Rendimiento</f:facet>
+						<p:ajax event="rowEdit" listener="#{procesoViewBean.onRowEdit}"
+							update="dtRendimiento" />
+						<p:column style="width:35px"
+							rendered="#{procesoViewBean.usuarioAdministrador and procesoViewBean.procesoSelected.estado eq 'REVISION'}">
+							<p:rowEditor />
+						</p:column>
+						<p:column headerText="Cantidad">
+							<p:cellEditor>
+								<f:facet name="output">
+									<h:outputText value="#{rendimiento.cantidad}" />
+								</f:facet>
+								<f:facet name="input">
+									<p:inputText id="modelInput" value="#{rendimiento.cantidad}"
+										style="width:100%" />
+								</f:facet>
+							</p:cellEditor>
+						</p:column>
+						<p:column headerText="Hora Registro" width="50">
+							<h:outputLabel value="#{rendimiento.hora}">
+								<f:convertDateTime pattern="HH:mm:ss" />
+							</h:outputLabel>
+						</p:column>
+						<p:column headerText="Observación">
+							<p:outputLabel value="#{rendimiento.observacion}"></p:outputLabel>
+						</p:column>
+						<p:column headerText="Estado">
+							<p:outputLabel value="#{rendimiento.estado}"></p:outputLabel>
+						</p:column>
+					</p:dataTable>
+				</p:panel>
+			</p:dialog>
+
+			<p:dialog header="Eficiencia" widgetVar="dlgEficiencia"
+				minHeight="40" id="dlgEficiencia" width="400" showEffect="fade">
+				<p:panel id="pnlEficiencia">
+					<h:panelGrid id="pgEficiencia" columns="3">
+						<p:outputLabel for="cantidad" value="Cantidad:"></p:outputLabel>
+						<p:spinner id="cantidad" required="true"
+							requiredMessage="Campo Obligatorio"
+							value="#{procesoViewBean.rendimientoSelected.cantidad}"></p:spinner>
+						<p:message for="cantidad" display="icon" />
+						<p:outputLabel for="estado" value="Estado:"></p:outputLabel>
+						<p:selectOneMenu id="estado" required="true"
+							requiredMessage="Campo Obligatorio"
+							value="#{procesoViewBean.rendimientoSelected.estado}">
+							<f:selectItem itemLabel="Seleccione"></f:selectItem>
+							<f:selectItem itemLabel="CONFORME" itemValue="CONFORME"></f:selectItem>
+							<f:selectItem itemLabel="NO CONFORME" itemValue="NOCONFORME"></f:selectItem>
+						</p:selectOneMenu>
+						<p:message for="estado" display="icon" />
+						<p:outputLabel for="observacionRendimiento" value="Observación:"></p:outputLabel>
+						<p:inputTextarea id="observacionRendimiento" required="true"
+							rows="2" cols="20" requiredMessage="Campo Obligatorio"
+							value="#{procesoViewBean.rendimientoSelected.observacion}"></p:inputTextarea>
+						<p:message for="observacionRendimiento" display="icon" />
+						<f:facet name="footer">
+							<p:commandButton
+								value="#{procesoViewBean.accion eq 'C' ? 'Guardar' : 'Modificar'} "
+								icon="fa fa-save"
+								oncomplete="if (args &amp;&amp; !args.validationFailed) PF('dlgEficiencia').hide()"
+								actionListener="#{procesoViewBean.guardarOrModificarRendimiento}"
+								update="pgEficiencia :formDglProceso:dtRendimiento, :formDglProceso:pgInformativo, :formMessages:messages"
+								process="@this, pgEficiencia" />
+							<p:commandButton icon="ui-icon-close"
+								oncomplete="PF('dlgEficiencia').hide()" immediate="true"
+								value="Cancelar"></p:commandButton>
+						</f:facet>
+					</h:panelGrid>
+				</p:panel>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

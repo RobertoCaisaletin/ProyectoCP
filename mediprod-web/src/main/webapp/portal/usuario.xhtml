@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/WEB-INF/template/template.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+	<ui:define name="content">
+		<h:form id="formMessages">
+			<p:growl id="messages" showDetail="true" />
+		</h:form>
+		<h:form id="formUsuario">
+			<p:menubar>
+				<p:menuitem value="Refrescar" icon="pi pi-refresh" />
+				<p:menuitem value="Nuevo" icon="pi pi-fw pi-plus"
+					update=":formDglUsuario:pnlUsuario" process="@this"
+					actionListener="#{usuarioViewBean.inicializar}"
+					onclick="PF('dlgUsuario').show()" />
+				<f:facet name="options">
+					<div class="ui-input-icon-left p-mr-2">
+						<p:menuButton value="Exportar">
+							<p:menuitem value="Excel" ajax="false" icon="fa fa-file-excel-o">
+							</p:menuitem>
+							<p:menuitem value="PDF" ajax="false" icon="fa fa-file-pdf-o">
+							</p:menuitem>
+						</p:menuButton>
+					</div>
+				</f:facet>
+			</p:menubar>
+			<p:dataTable value="#{usuarioViewBean.listUsuario}" var="usuario"
+				id="dtUsuario" emptyMessage="No se encontraron registros">
+				<f:facet name="header">Lista de Usuario</f:facet>
+				<p:column headerText="Acciones">
+					<p:commandButton icon="fa fa-pencil-square" value="Editar"
+						actionListener="#{usuarioViewBean.editar}" title="Editar"
+						process="@this" onclick="PF('dlgUsuario').show()"
+						update=":formDglUsuario:pnlUsuario">
+						<f:setPropertyActionListener
+							target="#{usuarioViewBean.usuarioSelected}" value="#{usuario}" />
+					</p:commandButton>
+					<p:commandButton icon="fa fa-trash" value="Eliminar"
+						title="Eliminar" process="@this"
+						onclick="PF('dlgEliminarUsuario').show()"
+						update=":formDglUsuario:pnlUsuario">
+						<f:setPropertyActionListener
+							target="#{usuarioViewBean.usuarioSelected}" value="#{usuario}" />
+					</p:commandButton>
+				</p:column>
+				<p:column headerText="Nombre">
+					<p:outputLabel value="#{usuario.nomUsuario}"></p:outputLabel>
+				</p:column>
+				<p:column headerText="Estado">
+					<p:outputLabel value="#{usuario.estado}"></p:outputLabel>
+				</p:column>
+				<p:column headerText="Usuario">
+					<p:outputLabel value="#{usuario.username}"></p:outputLabel>
+				</p:column>
+				<p:column headerText="Rol">
+					<p:outputLabel value="#{usuario.perfil.descripcion}"></p:outputLabel>
+				</p:column>
+			</p:dataTable>
+		</h:form>
+		<h:form id="formDglUsuario">
+			<p:confirmDialog id="dlgEliminarUsuario" width="400"
+				widgetVar="dlgEliminarUsuario"
+				message=" ¿ Desea eliminar el Usuario seleccionado ?"
+				header="Producto" appendTo="@(body)">
+				<p:commandButton value="Confirmar"
+					actionListener="#{usuarioViewBean.eliminar}"
+					oncomplete="PF('dlgEliminarUsuario').hide()"
+					update=":formUsuario:dtUsuario, :formMessages:messages"
+					process="@this" styleClass="ui-confirmdialog-yes"
+					icon="ui-icon-check" />
+				<p:commandButton value="Cancelar" type="button"
+					onclick="PF('dlgEliminarUsuario').hide()"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+			<p:dialog header="Usuario" widgetVar="dlgUsuario" minHeight="40"
+				id="dlgUsuario" width="400" showEffect="fade">
+				<p:panel id="pnlUsuario">
+					<h:panelGrid columns="3" id="pgUsuario">
+						<p:outputLabel for="perfil" value="Rol:"></p:outputLabel>
+						<p:selectOneMenu id="perfil" required="true"
+							requiredMessage="Campo Obligatorio"
+							value="#{usuarioViewBean.idPerfilSelected}">
+							<f:selectItem itemLabel="Seleccione"></f:selectItem>
+							<f:selectItems value="#{usuarioViewBean.listPerfil}" var="dto"
+								itemLabel="#{dto.descripcion}" itemValue="#{dto.idPerfil}"></f:selectItems>
+						</p:selectOneMenu>
+						<p:message for="perfil" display="icon" />
+						<p:outputLabel for="nomUsuario" value="Nombre:"></p:outputLabel>
+						<p:inputText id="nomUsuario" required="true"
+							requiredMessage="Campo Obligatorio"
+							value="#{usuarioViewBean.usuarioSelected.nomUsuario}"></p:inputText>
+						<p:message for="nomUsuario" display="icon" />
+
+						<p:outputLabel for="username" value="Usuario:"></p:outputLabel>
+						<p:inputText id="username" required="true"
+							requiredMessage="Campo Obligatorio"
+							value="#{usuarioViewBean.usuarioSelected.username}"></p:inputText>
+						<p:message for="username" display="icon" />
+
+						<p:outputLabel for="password" value="Contraseña:"></p:outputLabel>
+						<p:inputText id="password" required="true"
+							requiredMessage="Campo Obligatorio"
+							value="#{usuarioViewBean.usuarioSelected.password}"></p:inputText>
+						<p:message for="password" display="icon" />
+						
+						<p:outputLabel for="estado" value="Estado:"></p:outputLabel>
+						<p:selectBooleanCheckbox id="estado" value="#{usuarioViewBean.statusUsuario}"/>
+						<p:message for="estado" display="icon" />
+
+						<f:facet name="footer">
+							<p:commandButton
+								value="#{usuarioViewBean.accion eq 'C' ? 'Guardar' : 'Modificar'} "
+								icon="fa fa-save"
+								oncomplete="if (args &amp;&amp; !args.validationFailed) PF('dlgUsuario').hide()"
+								actionListener="#{usuarioViewBean.guardarOrModificar}"
+								update="pgUsuario, :formUsuario:dtUsuario, :formMessages:messages"
+								process="@this, pgUsuario" />
+							<p:commandButton icon="ui-icon-close"
+								oncomplete="PF('dlgUsuario').hide()" immediate="true"
+								value="Cancelar"></p:commandButton>
+						</f:facet>
+					</h:panelGrid>
+				</p:panel>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

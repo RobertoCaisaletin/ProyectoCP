@@ -1,0 +1,73 @@
+* {
+  	box-sizing: border-box;
+  	font-family: -apple-system, BlinkMacSystemFont, "segoe ui", roboto, oxygen, ubuntu, cantarell, "fira sans", "droid sans", "helvetica neue", Arial, sans-serif;
+  	font-size: 16px;
+  	-webkit-font-smoothing: antialiased;
+  	-moz-osx-font-smoothing: grayscale;
+}
+body {
+  	background-color: #eeeeee;
+/*   	background-image: url(../images/logo.jpg); */
+}
+.login {
+  	width: 450px;
+  	background-color: #ffffff;
+  	box-shadow: 0 0 9px 0 rgba(0, 0, 0, 0.3);
+  	margin: 150px auto;
+}
+.login h1 {
+  	text-align: center;
+  	color: #663399;
+  	font-size: 24px;
+  	padding: 20px 0 20px 0;
+  	border-bottom: 1px solid #dee0e4;
+}
+.login form {
+  	display: flex;
+  	flex-wrap: wrap;
+  	justify-content: center;
+  	padding-top: 20px;
+}
+.login form label {
+  	display: flex;
+  	justify-content: center;
+  	align-items: center;
+  	width: 50px;
+  	height: 40px;
+  	background-color: #663399;
+  	color: #FFFFFF;
+}
+.login form input[type="password"], .login form input[type="text"] {
+  	width: 360px;
+  	height: 40px;
+  	border: 1px solid #dee0e4;
+  	margin-bottom: 20px;
+  	padding: 0 15px;
+}
+
+.title {
+  	  	text-align: center;
+  	color: #663399;
+  	font-size: 24px;
+  	padding: 20px 0 20px 0;
+  	
+}
+
+.loginHeader {
+  	width: 450px;
+  	background-color: #ffffff;  	
+  	margin: 100px auto;
+  	justify-content: center;
+}
+
+.ui-button {
+  	width: 410px;
+  	padding: 10px;
+  	height: 50px;
+ 	margin-top: 10px;
+  	background-color: #663399;
+  	border: 0;
+  	cursor: pointer;
+  	font-weight: bold;
+  	color: #ffffff;
+}

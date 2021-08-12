@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/WEB-INF/template/template.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+	<ui:define name="content">
+		<h:form id="formMessages">
+			<p:growl id="messages" showDetail="true" />
+		</h:form>
+		<h:form id="formProducto">
+			<p:menubar>
+				<p:menuitem value="Refrescar" icon="pi pi-refresh" />
+				<p:menuitem value="Nuevo" icon="pi pi-fw pi-plus"
+					update=":formDglProducto:pnlProducto" process="@this"
+					actionListener="#{productoViewBean.inicializar}"
+					onclick="PF('dlgProducto').show()" />
+				<f:facet name="options">
+					<div class="ui-input-icon-left p-mr-2">
+						<p:menuButton value="Exportar">
+							<p:menuitem value="Excel" ajax="false" icon="fa fa-file-excel-o">
+							</p:menuitem>
+							<p:menuitem value="PDF" ajax="false" icon="fa fa-file-pdf-o">
+							</p:menuitem>
+						</p:menuButton>
+					</div>
+				</f:facet>
+			</p:menubar>
+			<p:dataTable value="#{productoViewBean.listProducto}" var="producto"
+				id="dtProducto" emptyMessage="No se encontraron registros">
+				<f:facet name="header">Lista de Producto</f:facet>
+				<p:column headerText="Acciones">
+					<p:commandButton icon="fa fa-pencil-square" value="Editar"
+						actionListener="#{productoViewBean.editar}" title="Editar"
+						process="@this" onclick="PF('dlgProducto').show()"
+						update=":formDglProducto:pnlProducto">
+						<f:setPropertyActionListener
+							target="#{productoViewBean.productoSelected}" value="#{producto}" />
+					</p:commandButton>
+					<p:commandButton icon="fa fa-trash" value="Eliminar"
+						title="Eliminar" process="@this"
+						onclick="PF('dlgEliminarProducto').show()"
+						update=":formDglProducto:pnlProducto">
+						<f:setPropertyActionListener
+							target="#{productoViewBean.productoSelected}" value="#{producto}" />
+					</p:commandButton>
+				</p:column>
+				<p:column headerText="Producto">
+					<p:outputLabel value="#{producto.descripcion}"></p:outputLabel>
+				</p:column>
+				<p:column headerText="Estimación" width="70">
+					<p:outputLabel value="#{producto.numEstandar}"></p:outputLabel>
+				</p:column>
+			</p:dataTable>
+		</h:form>
+		<h:form id="formDglProducto">
+			<p:confirmDialog id="dlgEliminarProducto" width="400"
+				widgetVar="dlgEliminarProducto"
+				message=" ¿ Desea eliminar el Producto seleccionado ?"
+				header="Producto" appendTo="@(body)">
+				<p:commandButton value="Confirmar"
+					actionListener="#{productoViewBean.eliminar}"
+					oncomplete="PF('dlgEliminarProducto').hide()"
+					update=":formProducto:dtProducto, :formMessages:messages"
+					process="@this" styleClass="ui-confirmdialog-yes"
+					icon="ui-icon-check" />
+				<p:commandButton value="Cancelar" type="button"
+					onclick="PF('dlgEliminarProducto').hide()"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+			<p:dialog header="Producto" widgetVar="dlgProducto" minHeight="40"
+				id="dglProducto" width="400" showEffect="fade">
+				<p:panel id="pnlProducto">
+					<h:panelGrid columns="3" id="pgProducto">
+						<p:outputLabel for="descripcion" value="Descripción:"></p:outputLabel>
+						<p:inputText id="descripcion" required="true"
+							requiredMessage="Campo Obligatorio"
+							value="#{productoViewBean.productoSelected.descripcion}"></p:inputText>
+						<p:message for="descripcion" display="icon" />
+						<p:outputLabel for="numEstandar" value="Estimación:"></p:outputLabel>
+						<p:inputText id="numEstandar" required="true"
+							requiredMessage="Campo Obligatorio"
+							value="#{productoViewBean.productoSelected.numEstandar}"></p:inputText>
+						<p:message for="numEstandar" display="icon" />
+						<f:facet name="footer">
+							<p:commandButton
+								value="#{productoViewBean.accion eq 'C' ? 'Guardar' : 'Modificar'} "
+								icon="fa fa-save"
+								oncomplete="if (args &amp;&amp; !args.validationFailed) PF('dlgProducto').hide()"
+								actionListener="#{productoViewBean.guardarOrModificar}"
+								update="pgProducto, :formProducto:dtProducto, :formMessages:messages"
+								process="@this, pgProducto" />
+							<p:commandButton icon="ui-icon-close"
+								oncomplete="PF('dlgProducto').hide()" immediate="true"
+								value="Cancelar"></p:commandButton>
+						</f:facet>
+					</h:panelGrid>
+				</p:panel>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

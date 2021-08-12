@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link type="text/css" rel="stylesheet"
+		href="#{request.contextPath}/resources/css/default.css" />
+	<link type="text/css" rel="stylesheet"
+		href="#{request.contextPath}/resources/css/cssLayout.css" />
+	<h:outputStylesheet name="primeicons/primeicons.css"
+		library="primefaces" />
+	<f:event listener="#{homeViewBean.invalidateUsuarioSession()}"
+		type="preRenderView" />
+	<title>MediProd</title>
+</h:head>
+<h:body>
+	<p:layout fullPage="true">
+		<p:layoutUnit position="north" size="60" styleClass="ui-top">
+			<f:facet name="header">
+				<table style="width: 100%">
+					<tr>
+						<td style="text-align: left; width: 30%"><i
+							class="pi pi-chart-line" style="font-size: 2rem">MediProd</i></td>
+						<td style="text-align: center; width: 40%"></td>
+						<td style="text-align: right; width: 30%"><p:commandButton
+								value="#{homeViewBean.usuarioSesion.nomUsuario}"
+								icon="pi pi-user" disabled="true" /> <i
+							class="pi pi-ellipsis-v layout-menuitem-icon"></i> <p:commandButton
+								icon="pi pi-home layout-menuitem-icon" /> <i
+							class="pi pi-ellipsis-v layout-menuitem-icon"></i> <p:commandButton
+								icon="pi pi-sign-out layout-menuitem-icon" title="Salir"
+								actionListener="#{homeViewBean.salir}"
+								action="/login?faces-redirect=true" /></td>
+					</tr>
+				</table>
+			</f:facet>
+		</p:layoutUnit>
+
+		<p:layoutUnit position="south">
+
+		</p:layoutUnit>
+
+		<p:layoutUnit position="west" size="200" header="Gestión Eficiencia">
+			<h:form>
+				<p:panelMenu model="#{homeViewBean.menuModel}" style="width:190px">
+				</p:panelMenu>
+			</h:form>
+		</p:layoutUnit>
+
+		<p:layoutUnit position="center">
+			<ui:insert name="content"></ui:insert>
+		</p:layoutUnit>
+	</p:layout>
+</h:body>
+</html>
